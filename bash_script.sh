@@ -4,16 +4,11 @@ copy_to_location()
 {
     ((count=1))
     nfl=$( cat "$starting_dir/log.txt" | wc -l | cut -d " " -f 1 )
-    #echo "no of lines : $nfl"
     while [ "$count" -lt "$((nfl+1))" ] ;do
         file="$( cat "$starting_dir/log.txt" | head -n $count | tail -n 1 )"
-        #echo "$file"
         ((count2=${#starting_dir}))
-        #echo $count2
         new_path="$( echo "$file" | cut -c $(($count2+2))- )"
-        #echo $new_path
         new_path_create=$( echo $new_path | rev | cut --complement -d "/" -f 1 | rev )
-        #echo $new_path_create
         if [ -d "$new_path_create" > /dev/null ] ;then
             echo "Creating directory $write_location/$new_path_create"
             mkdir -p "$write_location/$new_path_create"
@@ -34,7 +29,6 @@ filter_uniq_files()
     ((count1=1))
     while [ "$count1" -lt "$(($( ls -1 "$1" | wc -l | cut -d " " -f 1 )+1))" ] ;do
         file1="$( ls -1 "$1" | head -n $count1 | tail -n 1 )"
-        #echo "$file1"
         if [ X"$( file "$file1" | cut -d ":" -f 2 | cut -d " " -f 2 )" = X"directory" ] ;then
             ( filter_uniq_files "$1/$file1" )
             ((count1++))
@@ -54,7 +48,6 @@ filter_uniq_files()
         while [ "$count2" -lt  $((nf+1)) ] ;do
             file2="$( cat "$starting_dir/log.txt" | head -n $count2 | tail -n 1 )"
             ((count2++))
-            #echo "$file1 : $file2"
             if [ "$( diff "$file1" "$( echo "$file2" )" )" ] ;then
                 echo . > /dev/null
             else 
