@@ -1,4 +1,7 @@
-
+display_files()
+{
+    echo "$(cat uniqfileslog.txt | rev | cut -d "/" -f 1 | rev )"
+}
 
 copy_to_location()
 {
@@ -8,11 +11,13 @@ copy_to_location()
         file="$( cat "$starting_dir/uniqfileslog.txt" | head -n $count | tail -n 1 )"
         ((count2=${#starting_dir}))
         new_path="$( echo "$file" | cut -c $(($count2+2))- )"
-        echo $new_path
+        #echo $new_path
         new_path_create=$( echo $new_path | rev | cut --complement -d "/" -f 1 | rev )
         if [ -d "$new_path_create" > /dev/null ] ;then
-            echo "Creating directory $write_location/$new_path_create"
-            mkdir -p "$write_location/$new_path_create"
+            if [ ! -e "$write_location/$new_path_create" ];then
+                echo "Creating directory $write_location/$new_path_create"
+                mkdir -p "$write_location/$new_path_create"
+            fi
             echo "Copying $( echo "$file" | rev | cut -d "/" -f 1 | rev )....."
             cp "$file" "$write_location/$new_path_create"
         else
@@ -108,6 +113,15 @@ case "$optional" in
     #echo "" > uniqfileslog.txt
     filter_uniq_files "$starting_dir"
     copy_to_location "$write_location"
+    rm "$starting_dir/uniqfileslog.txt"
+;;
+"lt")
+    shift 
+    starting_dir="$1"
+    touch "$starting_dir/uniqfileslog.txt"
+    filter_uniq_files "$starting_dir"
+    #cat "$starting_dir/uniqfileslog.txt"
+    display_files
     rm "$starting_dir/uniqfileslog.txt"
 ;;
 *) echo "Error: No Such optional Found" ;;
