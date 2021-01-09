@@ -2,7 +2,36 @@ display_files()
 {
     echo "$(cat uniqfileslog.txt | rev | cut -d "/" -f 1 | rev )"
 }
-
+update_file_count()
+{
+    value=$( cat "$starting_dir/temp.txt" | head -n 1 )
+    value=$((value+1))
+    echo "$value" > "$starting_dir/temp.txt"
+}
+display_progress()
+{
+    value=$( cat "$starting_dir/temp.txt" | head -n 1 )
+    progress_percent=$(( ($value*100)/$nof ))
+    progress_bar "$progress_percent"
+    echo -ne "$1\r"
+}
+progress_bar()
+{
+    value="$1"
+    value=$((value/5))
+    string="[ "
+    i=0
+    while [ "$i" -le "$value" ];do
+        string="$string#"
+        ((i++))
+    done
+    while [ "$i" -le "20" ];do
+        string="$string "
+        ((i++))
+    done
+    string="$string ] $1%  "
+    echo -ne "$string"
+}
 copy_to_location()
 {
     ((count=1))
@@ -32,7 +61,7 @@ filter_uniq_files()
 {
     firstline="no"
     cd "$1"
-    echo "Looking for files in $1......."
+    #echo "Looking for files in $1......."
     ((count1=1))
     while [ "$count1" -lt "$(($( ls -1 "$1" | wc -l | cut -d " " -f 1 )+1))" ] ;do
         file1="$( ls -1 "$1" | head -n $count1 | tail -n 1 )"
@@ -60,6 +89,8 @@ filter_uniq_files()
                 cd "$1"
             fi
         fi
+        update_file_count
+        display_progress "Looking for files in $1......."
         nf=$( cat "$starting_dir/uniqfileslog.txt" | wc -l | cut -d " " -f 1 )
         ((found=0))
         while [ "$count2" -lt  $((nf+1)) ] ;do
@@ -83,7 +114,7 @@ filter_uniq_files()
                     firstline="no"
                 else
                     rm "$file1"
-                    echo removed $file1
+                    echo Removed $file1
                     ((count1--))
                 fi
             fi
@@ -92,8 +123,13 @@ filter_uniq_files()
     done
 }
 
+initialize(){
+    nof=$(find  "$starting_dir" -type f | wc -l)
+    echo "0" > "$starting_dir/temp.txt"
+}
 starting_dir=""
 optional=""
+nof=0
 if [ X"$(echo $* | cut -d " " -f 1 | cut -c 1)" = X"-" ] ;then
     optional=$(echo $1 | cut --complement -c 1 )
 fi
@@ -102,6 +138,7 @@ case "$optional" in
 "") 
     starting_dir="$1"
     > "$starting_dir/uniqfileslog.txt"
+    initialize
     filter_uniq_files "$starting_dir" "$optional"
 ;;
 "wtd")
@@ -111,6 +148,7 @@ case "$optional" in
     write_location="$1"
     touch "$starting_dir/uniqfileslog.txt"
     #echo "" > uniqfileslog.txt
+    initialize
     filter_uniq_files "$starting_dir"
     copy_to_location "$write_location"
     rm "$starting_dir/uniqfileslog.txt"
@@ -119,6 +157,8 @@ case "$optional" in
     shift 
     starting_dir="$1"
     touch "$starting_dir/uniqfileslog.txt"
+    initialize
+    echo -e "Searching for Files\n"
     filter_uniq_files "$starting_dir"
     #cat "$starting_dir/uniqfileslog.txt"
     display_files
