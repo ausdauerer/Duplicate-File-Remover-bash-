@@ -2,8 +2,10 @@
 
 ##### This is a bash script command line utility that handles duplicate files with the same content but different filenames.
 
+![alt text](https://github.com/ausdauerer/Duplicate-File-Remover-bash-/blob/c4f40ee11cda38a5d3303316bd462105f334d68a/src/images/loading.png?raw=true)
+
 ## Usage
----
+
 
 To list all the unique files in a directory:
 
